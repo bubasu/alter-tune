@@ -6,13 +6,14 @@ import { TuningEditorComponent } from './components/tuning-editor.component';
 import { FingeringEditorComponent } from './components/fingering-editor.component';
 import { ArpeggioSequencerComponent } from './components/arpeggio-sequencer.component';
 import { TransportComponent } from './components/transport.component';
+import { FingeringPresetsComponent } from './components/fingering-presets.component';
 import { AudioEngineService } from './audio-engine.service';
 import { TheoryService } from './theory.service';
 
 @Component({
   selector: 'at-workspace',
   standalone: true,
-  imports: [CommonModule, RouterModule, TuningEditorComponent, FingeringEditorComponent, ArpeggioSequencerComponent, TransportComponent],
+  imports: [CommonModule, RouterModule, TuningEditorComponent, FingeringEditorComponent, FingeringPresetsComponent, ArpeggioSequencerComponent, TransportComponent],
   template: `
   <div class="wrap">
     <h2>AlterTune – Workspace (Skeleton)</h2>
@@ -20,6 +21,7 @@ import { TheoryService } from './theory.service';
       <div class="col">
         <at-tuning-editor [tuning]="tuning()" (tuningChange)="tuning.set($event)"></at-tuning-editor>
         <at-fingering-editor [tuningStrings]="tuning().strings" [fingering]="fingering()" (fingeringChange)="fingering.set($event)"></at-fingering-editor>
+        <at-fingering-presets [fingering]="fingering()" [stringsCount]="tuning().strings.length" [tuningName]="tuning().name" (select)="fingering.set($event)"></at-fingering-presets>
       </div>
       <div class="col">
         <at-arpeggio-sequencer [stringsCount]="tuning().strings.length" [pattern]="pattern" (patternChange)="pattern.set($event)"></at-arpeggio-sequencer>
