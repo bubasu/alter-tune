@@ -2,6 +2,13 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Fingering } from '../models';
 
+// Mapping tables for note calculations
+const NOTE_TO_SEMITONE: Record<string, number> = {
+  'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3, 'E': 4, 'F': 5,
+  'F#': 6, 'Gb': 6, 'G': 7, 'G#': 8, 'Ab': 8, 'A': 9, 'A#': 10, 'Bb': 10, 'B': 11
+};
+const SEMITONE_TO_SHARP: string[] = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
 @Component({
   selector: 'at-fingering-editor',
   standalone: true,
@@ -29,7 +36,7 @@ import { Fingering } from '../models';
       <div class="row" *ngFor="let r of rows(); trackBy: trackByIndex">
         <label>String {{r+1}} Fret:
           <input type="number" [value]="fretAt(r)" (input)="setFret(r, $any($event.target).valueAsNumber)" step="1">
-          <small>(-1 mute, 0 open)</small>
+          <small>(-1 mute, 0 open) — {{ noteLabel(r) }}</small>
         </label>
       </div>
     </div>
@@ -63,6 +70,20 @@ export class FingeringEditorComponent {
   trackByIndex = (i: number) => i;
 
   fretAt = (i: number) => this.fingering?.frets?.[i] ?? 0;
+
+  noteLabel(i: number): string {
+    const fret = this.fretAt(i);
+    if (fret == null) return '';
+    if (fret < 0) return 'muted';
+    const st = this.tuningStrings?.[i];
+    const p = st?.pitch as { note: string; octave: number } | undefined;
+    if (!p || typeof p.octave !== 'number' || typeof p.note !== 'string') return '';
+    const base = NOTE_TO_SEMITONE[p.note] ?? 0;
+    const midi = (p.octave + 1) * 12 + base + fret; // add fret in semitones
+    const name = SEMITONE_TO_SHARP[((midi % 12) + 12) % 12];
+    const octave = Math.floor(midi / 12) - 1;
+    return `${name}${octave}`;
+  }
 
   setFret(i: number, value: number) {
     const frets = (this.fingering?.frets ?? []).slice();
