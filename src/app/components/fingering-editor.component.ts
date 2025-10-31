@@ -26,9 +26,9 @@ import { Fingering } from '../models';
       </g>
     </svg>
     <div class="grid">
-      <div class="row" *ngFor="let _ of tuningStrings; index as i">
-        <label>String {{i+1}} Fret:
-          <input type="number" [value]="fretAt(i)" (input)="setFret(i, $any($event.target).valueAsNumber)" step="1">
+      <div class="row" *ngFor="let r of rows(); trackBy: trackByIndex">
+        <label>String {{r+1}} Fret:
+          <input type="number" [value]="fretAt(r)" (input)="setFret(r, $any($event.target).valueAsNumber)" step="1">
           <small>(-1 mute, 0 open)</small>
         </label>
       </div>
@@ -45,7 +45,7 @@ import { Fingering } from '../models';
 })
 export class FingeringEditorComponent {
   @Input({required: true}) fingering!: Fingering;
-  @Input({required: true, transform: (x: any[]) => x.reverse()}) tuningStrings: any[] = [];
+  @Input({required: true}) tuningStrings: any[] = [];
   @Output() fingeringChange = new EventEmitter<Fingering>();
 
   maxFrets = 12;
@@ -54,6 +54,14 @@ export class FingeringEditorComponent {
   xFret = (fret: number) => 10 + fret * ((300) / Math.max(1, this.maxFrets));
   rowY = (i: number) => 12 + (Math.max(0, (this.tuningStrings?.length ?? 1) - 1 - i)) * 14;
   rowsHeight = () => (this.tuningStrings?.length ? (this.tuningStrings.length - 1) * 14 + 24 : 40);
+
+  // Provide actual stringIndex values in inverted display order (highest at top, lowest at bottom)
+  rows = () => {
+    const n = this.tuningStrings?.length ?? 0;
+    return Array.from({ length: n }, (_, k) => n - 1 - k);
+  };
+  trackByIndex = (i: number) => i;
+
   fretAt = (i: number) => this.fingering?.frets?.[i] ?? 0;
 
   setFret(i: number, value: number) {
