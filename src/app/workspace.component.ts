@@ -16,7 +16,8 @@ import { TheoryService } from './theory.service';
   imports: [CommonModule, RouterModule, TuningEditorComponent, FingeringEditorComponent, FingeringPresetsComponent, ArpeggioSequencerComponent, TransportComponent],
   template: `
   <div class="wrap">
-    <h2>AlterTune – Workspace (Skeleton)</h2>
+    <h2>Alter Tune</h2>
+    <p>Explore alternative guitar tunings!</p>
     <div class="cols">
       <div class="col">
         <at-tuning-editor [tuning]="tuning()" (tuningChange)="tuning.set($event)"></at-tuning-editor>
@@ -36,6 +37,12 @@ import { TheoryService } from './theory.service';
     .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
     .col { display: flex; flex-direction: column; gap: 12px; }
     .hint { color: #666; font-size: 12px; margin-top: 12px; }
+
+    /* Mobile: stack panels in a single column */
+    @media (max-width: 800px) {
+      .cols { grid-template-columns: 1fr; }
+      .wrap { padding: 10px; }
+    }
   `]
 })
 export class WorkspaceComponent implements OnDestroy {
