@@ -4,6 +4,30 @@ import { Pitch, StringTuning, Tuning } from '../models';
 
 const NOTE_OPTIONS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'] as const;
 
+// Preset tunings using English note names (e.g., F# not FIS)
+const TUNING_PRESETS: Record<string, Pitch[]> = {
+  'Standard (EADGBE)': [
+    {note:'E', octave:2}, {note:'A', octave:2}, {note:'D', octave:3},
+    {note:'G', octave:3}, {note:'B', octave:3}, {note:'E', octave:4}
+  ],
+  'Drop D (DADGBE)': [
+    {note:'D', octave:2}, {note:'A', octave:2}, {note:'D', octave:3},
+    {note:'G', octave:3}, {note:'B', octave:3}, {note:'E', octave:4}
+  ],
+  'DADGAD': [
+    {note:'D', octave:2}, {note:'A', octave:2}, {note:'D', octave:3},
+    {note:'G', octave:3}, {note:'A', octave:3}, {note:'D', octave:4}
+  ],
+  'Open D (DADF#AD)': [
+    {note:'D', octave:2}, {note:'A', octave:2}, {note:'D', octave:3},
+    {note:'F#', octave:3}, {note:'A', octave:3}, {note:'D', octave:4}
+  ],
+  'Open G (DGDGBD)': [
+    {note:'D', octave:2}, {note:'G', octave:2}, {note:'D', octave:3},
+    {note:'G', octave:3}, {note:'B', octave:3}, {note:'D', octave:4}
+  ],
+};
+
 @Component({
   selector: 'at-tuning-editor',
   standalone: true,
@@ -15,6 +39,13 @@ const NOTE_OPTIONS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'] as c
       <label>
         Strings:
         <input type="number" [value]="tuning.strings.length" min="1" max="12" (input)="onChangeCount($any($event.target).valueAsNumber)">
+      </label>
+      <label>
+        Preset:
+        <select (change)="applyPreset($any($event.target).value)">
+          <option value="">— choose —</option>
+          <option *ngFor="let k of presetNames" [value]="k">{{k}}</option>
+        </select>
       </label>
       <button (click)="resetStandard()">Standard (EADGBE)</button>
     </div>
@@ -51,6 +82,8 @@ export class TuningEditorComponent {
   @Output() tuningChange = new EventEmitter<Tuning>();
 
   noteOptions = [...NOTE_OPTIONS];
+  // Names of presets for dropdown
+  presetNames = Object.keys(TUNING_PRESETS);
 
   // Inverted Y: highest string at top (n-1), lowest at bottom (0)
   rowY = (i: number) => 10 + (Math.max(0, (this.tuning?.strings?.length ?? 1) - 1 - i)) * 12;
@@ -69,6 +102,14 @@ export class TuningEditorComponent {
       return existing ?? { stringIndex: idx, pitch: { note: 'E', octave: 2 } as Pitch };
     }).map((st, idx) => ({...st, stringIndex: idx}));
     this.emit({ ...this.tuning, strings });
+  }
+
+  // Apply a preset tuning immediately
+  applyPreset(name: string) {
+    if (!name || !TUNING_PRESETS[name]) return;
+    const preset = TUNING_PRESETS[name];
+    const strings: StringTuning[] = preset.map((p, i) => ({ stringIndex: i, pitch: p }));
+    this.emit({ name, strings });
   }
 
   onNoteChange(i: number, note: string) {
