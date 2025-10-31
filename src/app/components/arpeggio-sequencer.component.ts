@@ -17,11 +17,11 @@ import { ArpeggioPattern } from '../models';
 
     <div class="grid" [style.gridTemplateColumns]="gridCols()">
       <div class="cell head" *ngFor="let c of cols(); index as ci; trackBy: trackByIndex">{{ci+1}}</div>
-      <ng-container *ngFor="let r of rows(); index as ri; trackBy: trackByIndex">
-        <div class="row-label">S{{ri+1}}</div>
+      <ng-container *ngFor="let r of rows(); trackBy: trackByIndex">
+        <div class="row-label">S{{r+1}}</div>
         <div class="cell" *ngFor="let c of cols(); index as ci; trackBy: trackByIndex"
-             [class.active]="hasEvent(ci, ri)"
-             (click)="toggle(ci, ri)"></div>
+             [class.active]="hasEvent(ci, r)"
+             (click)="toggle(ci, r)"></div>
       </ng-container>
     </div>
   </div>
@@ -47,8 +47,10 @@ export class ArpeggioSequencerComponent {
   trackByIndex = (i: number) => i;
 
   rows = () => {
-    const need = this.stringsCount;
-    if (this._rows.length !== need) this._rows = Array.from({ length: need });
+    const n = this.stringsCount;
+    if (this._rows.length !== n || typeof this._rows[0] !== 'number') {
+      this._rows = Array.from({ length: n }, (_, k) => n - 1 - k);
+    }
     return this._rows;
   };
 
