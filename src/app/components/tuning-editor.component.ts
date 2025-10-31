@@ -19,17 +19,21 @@ const NOTE_OPTIONS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'] as c
       <button (click)="resetStandard()">Standard (EADGBE)</button>
     </div>
     <svg [attr.viewBox]="'0 0 300 ' + (rowsHeight())" class="fretboard">
-      <g *ngFor="let st of tuning.strings; index as i">
-        <line [attr.x1]="10" [attr.x2]="290" [attr.y1]="rowY(i)" [attr.y2]="rowY(i)" stroke="#888" stroke-width="2" />
-        <text [attr.x]="15" [attr.y]="rowY(i)-4" font-size="10" fill="#444">{{st.pitch.note}}{{st.pitch.octave}}</text>
+      <!-- SVG: iterate using real stringIndex values in inverted display order -->
+      <g *ngFor="let r of rows(); trackBy: trackByIndex">
+        <line [attr.x1]="10" [attr.x2]="290" [attr.y1]="rowY(r)" [attr.y2]="rowY(r)" stroke="#888" stroke-width="2" />
+        <text [attr.x]="15" [attr.y]="rowY(r)-4" font-size="10" fill="#444">{{tuning.strings[r].pitch.note}}{{tuning.strings[r].pitch.octave}}</text>
+        <text [attr.x]="270" [attr.y]="rowY(r)-4" font-size="10" fill="#666">S{{r+1}}</text>
       </g>
     </svg>
     <div class="grid">
-      <div class="row" *ngFor="let st of tuning.strings; index as i">
-        <select [value]="st.pitch.note" (change)="onNoteChange(i, $any($event.target).value)">
+      <!-- Input list: same inverted order, using real stringIndex r -->
+      <div class="row" *ngFor="let r of rows(); trackBy: trackByIndex">
+        <select [value]="tuning.strings[r].pitch.note" (change)="onNoteChange(r, $any($event.target).value)">
           <option *ngFor="let n of noteOptions" [value]="n">{{n}}</option>
         </select>
-        <input type="number" [value]="st.pitch.octave" min="0" max="8" (input)="onOctaveChange(i, $any($event.target).valueAsNumber)">
+        <input type="number" [value]="tuning.strings[r].pitch.octave" min="0" max="8" (input)="onOctaveChange(r, $any($event.target).valueAsNumber)">
+        <span class="label">S{{r+1}}</span>
       </div>
     </div>
   </div>
@@ -47,8 +51,17 @@ export class TuningEditorComponent {
   @Output() tuningChange = new EventEmitter<Tuning>();
 
   noteOptions = [...NOTE_OPTIONS];
-  rowY = (i: number) => 10 + i * 12;
+
+  // Inverted Y: highest string at top (n-1), lowest at bottom (0)
+  rowY = (i: number) => 10 + (Math.max(0, (this.tuning?.strings?.length ?? 1) - 1 - i)) * 12;
   rowsHeight = () => (this.tuning?.strings?.length ? (this.tuning.strings.length - 1)*12 + 20 : 40);
+
+  // Provide real string indices in inverted display order [n-1, ..., 0]
+  rows = () => {
+    const n = this.tuning?.strings?.length ?? 0;
+    return Array.from({ length: n }, (_, k) => n - 1 - k);
+  };
+  trackByIndex = (i: number) => i;
 
   onChangeCount(count: number) {
     const strings: StringTuning[] = Array.from({length: Math.max(1, Math.min(12, count || 1))}, (_, idx) => {
