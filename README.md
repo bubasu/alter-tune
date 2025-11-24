@@ -1,6 +1,12 @@
 # Alter Tune
 
-Devlogs will be available soon ...
+Alter Tune is a toy to explore alternate guitar tunings.
+
+It is still in a very early stage of development.
+
+## Devlogs
+
+... will be available soon.
 
 ## ⚠️ License Notice
 
